@@ -1,4 +1,9 @@
 # Hotel Booking SaaS — Product Backlog / プロダクトBacklog
+Nov 28:
+Gotta check if my AWS EC2 will expire.
+Update files on AWS (73 files suggested).
+
+
 
 更新日 / Updated: 2026-11-21
 

@@ -1,44 +1,65 @@
 import { useState } from "react";
+const API_URL = import.meta.env.VITE_API_URL;
 
 function App() { 
   const [city, setCity] = useState("");
 
   function setCityAsOsaka() {
-    setCity("Osaka")
-    setErrors({city: ""}) // Whenever city isn't blank during search, error won't show up
+    setCity("Osaka");
+    setErrors(prev => ({...prev, city: ""})); // Whenever city isn't blank during search, error won't show up
   }
 
   function setCityAsTokyo() {
-    setCity("Tokyo")
-    setErrors(city: "") // Whenever city isn't blank during search, error won't show up
+    setCity("Tokyo");
+    setErrors(prev => ({...prev, city: ""})); // Whenever city isn't blank during search, error won't show up
   }
 
   const [guest, setGuest] = useState(1);
 
   function addOneGuest() {
-    setGuest(guest + 1)
+    setGuest(guest + 1);
   }
 
   function minusOneGuest() {
-    setGuest(Math.max(guest - 1, 1)) // guestCount cannot be smaller than one
+    setGuest(Math.max(guest - 1, 1)); // guestCount cannot be smaller than one
   }
 
-  const [error, setErrors] = useState([
-    {city: ""},
-    {dates: ""}
-  ])
+  const [errors, setErrors] = useState({
+    city: "",
+    dates: ""
+  });
 
-  function handleClick() {
+  async function handleClick() {
     if (city.trim() === "") {
-      setErrors({city: "Select destination for your booking"});
+      setErrors(prev => ({...prev, city: "Select destination for your booking"}));
+    }
+
+    if (city.trim() !== "") {
+      setErrors(prev => ({...prev, city: ""}));
     }
 
     if (checkInDate >= checkOutDate) {
-      setErrors(dates: {checkInDate, checkOutDate}: "checkInDate must be before checkOutDate")
+      setErrors(prev => ({...prev, dates: "checkInDate must be before checkOutDate"}));
+    }
+    
+    if (checkInDate < checkOutDate) {
+      setErrors(prev => ({...prev, dates: ""}))
     }
 
-    else {
-      setErrors("")
+    if ((city.trim() !== "") && (checkInDate < checkOutDate) && (guest)) {
+      const queryParams = new URLSearchParams({
+        city: city,
+        checkInDate: checkInDate,
+        checkOutDate: checkOutDate,
+        guestCount: String(guest)
+      })
+
+      const response = await fetch(`${API_URL}/available-rooms?${queryParams}`)
+
+      const data = await response.json();
+      console.log(data);
+
+      return data;
     }
   }
 
@@ -71,11 +92,12 @@ function App() {
       <p>Find a room for your trip in {city}</p>
       <button onClick = {setCityAsOsaka}>Osaka</button>
       <button onClick = {setCityAsTokyo}>Tokyo</button>
-      <input value = {city} onChange = {(e) => {setCity(e.target.value); if ((e.target.value).trim() != "") {setErrors(city: "")}}}></input>
+      <input value = {city} onChange = {(e) => {setCity(e.target.value); if ((e.target.value).trim() != "") {setErrors(prev => ({...prev, city: ""}))}}}></input>
       <input type = "date" value = {checkInDate} onChange = {(e) => {setCheckInDate(e.target.value)}}></input>
       <input type = "date" value = {checkOutDate} onChange = {(e) => {setCheckOutDate(e.target.value)}}></input>
       <button onClick = {handleClick}>Find Room</button>
-      <p>{error}</p>
+      <p>{errors.city}</p>
+      <p>{errors.dates}</p>
       <p>guest : {guest}</p>
       <button onClick = {addOneGuest}>+</button>
       <button onClick = {minusOneGuest}  disabled = {guest === 1}>-</button>
